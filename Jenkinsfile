@@ -2,33 +2,49 @@ pipeline {
     agent any
 
     stages {
-
-        stage('Clone') {
+        stage('Checkout') {
             steps {
-                echo "Repository cloned successfully!"
-                bat 'dir'
+                // Checkout from GitHub repo using main branch
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/ihimbazwerafikijules-maker/pipeline.git'
+                    ]]
+                ])
             }
         }
 
         stage('Build') {
             steps {
-                echo "Building the project..."
-                bat 'echo Build completed.'
+                echo 'Running build steps...'
+                // Add your build commands here
             }
         }
 
         stage('Test') {
             steps {
-                echo "Running tests..."
-                bat 'echo Tests passed!'
+                echo 'Running tests...'
+                // Add your test commands here
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deploying application..."
-                bat 'echo Deployment completed!'
+                echo 'Deploying...'
+                // Add your deployment commands here
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
