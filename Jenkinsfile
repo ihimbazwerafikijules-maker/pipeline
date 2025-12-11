@@ -1,50 +1,42 @@
 pipeline {
-    agent any
+    agent any     // Means Jenkins can run this on any available machine
 
-    stages {
-        stage('Checkout') {
-            steps {
-                // Checkout from GitHub repo using main branch
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/ihimbazwerafikijules-maker/pipeline.git'
-                    ]]
-                ])
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo 'Running build steps...'
-                // Add your build commands here
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-                // Add your test commands here
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deploying...'
-                // Add your deployment commands here
-            }
-        }
+    // 1. ENVIRONMENT VARIABLES
+    environment {
+        DOCKER_IMAGE = 'rafikijules/myapp'      // Change this to your Docker Hub repo
+        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'    // This must match Jenkins credentials ID
     }
 
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
+    stages {
+
+        // 2. CHECKOUT CODE FROM GITHUB
+        stage('Checkout') {
+            steps {
+                checkout scm   // Jenkins checks out the GitHub repo you configured
+            }
         }
-        failure {
-            echo 'Pipeline failed!'
+
+        // 3. BUILD DOCKER IMAGE
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${DOCKER_IMAGE}:latest")
+                }
+            }
+        }
+
+        // 4. PUSH IMAGE TO DOCKER HUB
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry(
+                        'https://index.docker.io/v1/',
+                        DOCKER_CREDENTIALS_ID
+                    ) {
+                        dockerImage.push('latest')   // Pushes the image to Docker Hub
+                    }
+                }
+            }
         }
     }
 }
