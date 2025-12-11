@@ -1,19 +1,14 @@
-# Use official Node.js image
-FROM node:18-alpine
+# Use lightweight Nginx image
+FROM nginx:alpine
 
-# Set working directory
-WORKDIR /app
+# Remove default Nginx content
+RUN rm -rf /usr/share/nginx/html/*
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install
+# Copy your web app files into Nginx
+COPY . /usr/share/nginx/html
 
-# Copy all app files
-COPY . .
+# Expose port 80
+EXPOSE 80
 
-# Expose port
-EXPOSE 8080
-
-# Run the app
-CMD ["npm", "start"]
-
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
