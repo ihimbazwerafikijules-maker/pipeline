@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = credentials('docker-hub-username') // Jenkins credentials ID
-        DOCKER_HUB_PASS = credentials('docker-hub-password') // Jenkins credentials ID
+        DOCKER_HUB_USER = credentials('rafikijules/myapp') // Jenkins credentials ID
+        DOCKER_HUB_PASS = credentials('dckr_pat_5rxjd3fOY9ahngeigN5Idw2LqNs') // Jenkins credentials ID
         IMAGE_NAME = "myimage:latest"
     }
 
