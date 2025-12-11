@@ -2,44 +2,40 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'rafikijules/myapp'
-        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
+        DOCKER_HUB_USER = credentials('docker-hub-username') // Jenkins credentials ID
+        DOCKER_HUB_PASS = credentials('docker-hub-password') // Jenkins credentials ID
+        IMAGE_NAME = "myimage:latest"
     }
 
     stages {
-
         stage('Checkout') {
             steps {
+                // Checkout source code from GitHub
                 checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                // Build the Docker image locally
-                bat "docker build -t %DOCKER_IMAGE%:latest ."
+                // Build Docker image
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                // Log in to Docker Hub using Jenkins credentials and push the image
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat """
-                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push %DOCKER_IMAGE%:latest
-                    """
-                }
+                // Log in and push image to Docker Hub
+                sh 'echo $DOCKER_HUB_PASS | docker login -u $DOCKER_HUB_USER --password-stdin'
+                sh 'docker push $IMAGE_NAME'
             }
         }
 
         stage('Deploy to Local Docker Host') {
             steps {
-                // Stop and remove old container, then run the new one
-                bat """
-                    docker rm -f my-web-app || exit 0
-                    docker run -d --name my-web-app -p 8080:80 %DOCKER_IMAGE%:latest
-                """
+                // Optional: run the image locally
+                sh 'docker stop mycontainer || true'
+                sh 'docker rm mycontainer || true'
+                sh 'docker run -d --name mycontainer -p 8080:8080 $IMAGE_NAME'
             }
         }
     }
